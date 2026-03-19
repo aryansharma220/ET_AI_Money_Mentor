@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Database and local artifacts
+*.db
+*.sqlite3
+
+# Env files
+.env
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
