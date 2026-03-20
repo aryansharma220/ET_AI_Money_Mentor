@@ -51,3 +51,19 @@ export function listSavedPlans(token) {
   return request("/plans", null, { method: "GET", token });
 }
 
+export function createGoal(payload, token) {
+  return request("/goals", payload, { method: "POST", token });
+}
+
+export function listGoals(token, includeArchived = false) {
+  return request(`/goals?include_archived=${includeArchived}`, null, { method: "GET", token });
+}
+
+export function updateGoal(goalId, payload, token) {
+  return request(`/goals/${goalId}`, payload, { method: "PATCH", token });
+}
+
+export function archiveGoal(goalId, token) {
+  return request(`/goals/${goalId}/archive`, null, { method: "POST", token });
+}
+

@@ -34,7 +34,7 @@ export default function WhatIfPanel({
 
   const scenarioLabel = useMemo(() => {
     if (!planInput) {
-      return "Generate a base plan first.";
+      return "Build a base Finova plan first.";
     }
     return `Base Horizon: ${planInput.investment_horizon_years} years`;
   }, [planInput]);
@@ -54,8 +54,8 @@ export default function WhatIfPanel({
   return (
     <div className="workspace-side-panel space-y-4">
       <div>
-        <h3 className="text-lg font-bold text-white">What-if Scenario Analysis</h3>
-        <p className="text-sm text-white/75">Adjust SIP and timeline to compare outcomes against your current plan.</p>
+        <h3 className="text-lg font-bold text-white">Finova Scenario Lab</h3>
+        <p className="text-sm text-white/75">Tune SIP and horizon to evaluate trade-offs before you commit capital.</p>
       </div>
 
       <div className="workspace-note p-3 text-sm text-white/80">{scenarioLabel}</div>
@@ -93,7 +93,7 @@ export default function WhatIfPanel({
         disabled={!canRun}
         className="workspace-btn-primary w-full px-4 py-2 text-sm"
       >
-        {loading ? "Running Scenario..." : "Run What-if"}
+        {loading ? "Running Finova Scenario..." : "Run Finova What-if"}
       </button>
 
       <button
@@ -102,7 +102,7 @@ export default function WhatIfPanel({
         disabled={!canRunStress}
         className="workspace-btn-secondary w-full px-4 py-2 text-sm"
       >
-        {stressLoading ? "Running Income Stress Test..." : "Run Income Drop Stress Test (-20%)"}
+        {stressLoading ? "Running Income Stress Test..." : "Run Income Stress Test (-20%)"}
       </button>
 
       {error ? <p className="text-sm text-rose-300">{error}</p> : null}
@@ -150,7 +150,7 @@ export default function WhatIfPanel({
 
       {stressScenario && baselinePlan ? (
         <div className="space-y-2 rounded-xl border border-white/15 bg-white/10 p-3">
-          <p className="text-sm font-bold text-white">Income Drop Stress Test Result</p>
+          <p className="text-sm font-bold text-white">Finova Income Stress Result</p>
           <p className="text-sm text-white/85">
             Baseline SIP: {formatCurrency(baselinePlan.monthly_sip)} | Stressed SIP: {formatCurrency(stressScenario.plan.monthly_sip)}
           </p>

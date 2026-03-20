@@ -8,10 +8,21 @@ function formatCurrency(amount) {
   }).format(amount || 0);
 }
 
+function formatDigitsForDisplay(rawValue) {
+  const digitsOnly = String(rawValue || "").replace(/[^\d]/g, "");
+  if (!digitsOnly) return "";
+  return new Intl.NumberFormat("en-IN").format(Number(digitsOnly));
+}
+
+function parseDisplayNumber(value) {
+  const digitsOnly = String(value || "").replace(/[^\d]/g, "");
+  return digitsOnly ? Number(digitsOnly) : 0;
+}
+
 function blankGoal(index = 1) {
   return {
     name: `Goal ${index}`,
-    target_amount: 1_000_000,
+    target_amount: "10,00,000",
     horizon_years: 5,
     priority: Math.min(5, index),
     depends_on_text: "",
@@ -20,27 +31,27 @@ function blankGoal(index = 1) {
 }
 
 export default function MultiGoalPlanner({ data, loading, error, onRun }) {
-  const [monthlyIncome, setMonthlyIncome] = useState(100000);
-  const [monthlyExpenses, setMonthlyExpenses] = useState(60000);
-  const [currentSavings, setCurrentSavings] = useState(200000);
-  const [debtOutstanding, setDebtOutstanding] = useState(50000);
+  const [monthlyIncome, setMonthlyIncome] = useState("1,00,000");
+  const [monthlyExpenses, setMonthlyExpenses] = useState("60,000");
+  const [currentSavings, setCurrentSavings] = useState("2,00,000");
+  const [debtOutstanding, setDebtOutstanding] = useState("50,000");
   const [riskAppetite, setRiskAppetite] = useState("moderate");
-  const [maxMonthlySip, setMaxMonthlySip] = useState(20000);
+  const [maxMonthlySip, setMaxMonthlySip] = useState("20,000");
   const [goals, setGoals] = useState([blankGoal(1), blankGoal(2)]);
 
   const canSubmit = goals.length > 0 && !loading;
 
   const payload = useMemo(
     () => ({
-      monthly_income: Number(monthlyIncome),
-      monthly_expenses: Number(monthlyExpenses),
-      current_savings: Number(currentSavings),
-      debt_outstanding: Number(debtOutstanding),
+      monthly_income: parseDisplayNumber(monthlyIncome),
+      monthly_expenses: parseDisplayNumber(monthlyExpenses),
+      current_savings: parseDisplayNumber(currentSavings),
+      debt_outstanding: parseDisplayNumber(debtOutstanding),
       risk_appetite: riskAppetite,
-      max_monthly_sip: Number(maxMonthlySip),
+      max_monthly_sip: parseDisplayNumber(maxMonthlySip),
       goals: goals.map((goal) => ({
         name: goal.name,
-        target_amount: Number(goal.target_amount),
+        target_amount: parseDisplayNumber(goal.target_amount),
         horizon_years: Number(goal.horizon_years),
         priority: Number(goal.priority),
         depends_on: splitNames(goal.depends_on_text),
@@ -86,38 +97,41 @@ export default function MultiGoalPlanner({ data, loading, error, onRun }) {
   return (
     <section className="workspace-side-panel space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-lg font-bold text-white">Multi-Goal Optimization Engine</h3>
-        <p className="text-xs font-semibold uppercase tracking-wider text-white/[0.78]">Constrained Allocation Engine</p>
+        <h3 className="text-lg font-bold text-white">Finova Goal Optimizer</h3>
+        <p className="text-xs font-semibold uppercase tracking-wider text-white/[0.78]">Constraint-Aware Allocation</p>
       </div>
       <p className="text-sm text-white/75">
-        We allocate your money across competing goals under real-world constraints.
+        Finova allocates capital across competing goals under real-world constraints.
       </p>
 
       <div className="grid gap-3 md:grid-cols-3">
         <label className="block text-sm font-semibold text-white/90">
           Monthly Income
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={monthlyIncome}
-            onChange={(event) => setMonthlyIncome(Number(event.target.value))}
+            onChange={(event) => setMonthlyIncome(formatDigitsForDisplay(event.target.value))}
             className="workspace-input"
           />
         </label>
         <label className="block text-sm font-semibold text-white/90">
           Monthly Expenses
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={monthlyExpenses}
-            onChange={(event) => setMonthlyExpenses(Number(event.target.value))}
+            onChange={(event) => setMonthlyExpenses(formatDigitsForDisplay(event.target.value))}
             className="workspace-input"
           />
         </label>
         <label className="block text-sm font-semibold text-white/90">
           Max Monthly SIP
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={maxMonthlySip}
-            onChange={(event) => setMaxMonthlySip(Number(event.target.value))}
+            onChange={(event) => setMaxMonthlySip(formatDigitsForDisplay(event.target.value))}
             className="workspace-input"
           />
         </label>
@@ -127,18 +141,20 @@ export default function MultiGoalPlanner({ data, loading, error, onRun }) {
         <label className="block text-sm font-semibold text-white/90">
           Current Savings
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={currentSavings}
-            onChange={(event) => setCurrentSavings(Number(event.target.value))}
+            onChange={(event) => setCurrentSavings(formatDigitsForDisplay(event.target.value))}
             className="workspace-input"
           />
         </label>
         <label className="block text-sm font-semibold text-white/90">
           Debt Outstanding
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={debtOutstanding}
-            onChange={(event) => setDebtOutstanding(Number(event.target.value))}
+            onChange={(event) => setDebtOutstanding(formatDigitsForDisplay(event.target.value))}
             className="workspace-input"
           />
         </label>
@@ -172,9 +188,10 @@ export default function MultiGoalPlanner({ data, loading, error, onRun }) {
               <label className="block text-sm font-semibold text-white/90">
                 Target Amount
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   value={goal.target_amount}
-                  onChange={(event) => updateGoal(index, "target_amount", Number(event.target.value))}
+                  onChange={(event) => updateGoal(index, "target_amount", formatDigitsForDisplay(event.target.value))}
                   className="workspace-input"
                 />
               </label>
@@ -242,7 +259,7 @@ export default function MultiGoalPlanner({ data, loading, error, onRun }) {
           onClick={addGoal}
           className="workspace-btn-secondary px-4 py-2 text-sm"
         >
-          Add Goal
+          Add Finova Goal
         </button>
         <button
           type="button"
@@ -250,7 +267,7 @@ export default function MultiGoalPlanner({ data, loading, error, onRun }) {
           disabled={!canSubmit}
           className="workspace-btn-primary px-4 py-2 text-sm"
         >
-          {loading ? "Running Optimizer..." : "Run Multi-Goal Plan"}
+          {loading ? "Running Finova Optimizer..." : "Run Finova Optimization"}
         </button>
       </div>
 
@@ -552,17 +569,17 @@ function GoalDependencyGraph({ goals, graph }) {
       <svg
         ref={svgRef}
         viewBox={`0 0 ${width} ${height}`}
-        className="h-[240px] min-w-[860px] rounded-xl border border-white/15 bg-[#0f2745]/85"
+        className="goal-graph-canvas h-[240px] min-w-[860px] rounded-xl"
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       >
         <defs>
           <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-            <path d="M0,0 L8,3 L0,6 z" fill="#c9d9ec" />
+            <path d="M0,0 L8,3 L0,6 z" fill="var(--graph-edge-dep)" />
           </marker>
           <marker id="linkDot" markerWidth="6" markerHeight="6" refX="3" refY="3">
-            <circle cx="3" cy="3" r="2" fill="#8ad7c8" />
+            <circle cx="3" cy="3" r="2" fill="var(--graph-edge-link)" />
           </marker>
         </defs>
 
@@ -586,7 +603,7 @@ function GoalDependencyGraph({ goals, graph }) {
           const isForward = targetX >= sourceX;
 
           const path = `M ${sourceX} ${sourceY} C ${sourceX + (isForward ? curve : -curve)} ${sourceY}, ${targetX - (isForward ? curve : -curve)} ${targetY}, ${targetX} ${targetY}`;
-          const stroke = edge.relation === "depends_on" ? "#c9d9ec" : "#8ad7c8";
+          const stroke = edge.relation === "depends_on" ? "var(--graph-edge-dep)" : "var(--graph-edge-link)";
           const dash = edge.relation === "depends_on" ? "0" : "6 4";
 
           return (

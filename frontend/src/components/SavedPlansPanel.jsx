@@ -40,13 +40,13 @@ export default function SavedPlansPanel({ plans, loading, authenticated }) {
 
   return (
     <div className="workspace-side-panel h-full">
-      <h3 className="text-lg font-bold text-white">Saved Plans</h3>
-      <p className="mt-1 text-sm text-white/75">Recent snapshots for your authenticated account.</p>
+      <h3 className="text-lg font-bold text-white">Finova Vault Records</h3>
+      <p className="mt-1 text-sm text-white/75">Verified strategy snapshots tied to your Finova account.</p>
 
-      {!authenticated ? <p className="mt-3 text-sm text-white/75">Login to view saved plans.</p> : null}
-      {authenticated && loading ? <p className="mt-3 text-sm text-white/75">Loading saved plans...</p> : null}
+      {!authenticated ? <p className="mt-3 text-sm text-white/75">Sign in to view Finova Vault records.</p> : null}
+      {authenticated && loading ? <p className="mt-3 text-sm text-white/75">Loading Finova Vault records...</p> : null}
       {authenticated && !loading && plans.length === 0 ? (
-        <p className="mt-3 text-sm text-white/75">No plans saved yet.</p>
+        <p className="mt-3 text-sm text-white/75">No records saved yet.</p>
       ) : null}
 
       {authenticated && plans.length > 0 ? (
@@ -77,7 +77,7 @@ export default function SavedPlansPanel({ plans, loading, authenticated }) {
                 tab === "highest-corpus" ? "bg-white text-slate-900" : "hover:bg-white/15"
               }`}
             >
-              Highest Corpus
+              Top Corpus
             </button>
           </div>
 

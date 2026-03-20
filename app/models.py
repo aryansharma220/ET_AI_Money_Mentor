@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional
 
 
@@ -91,6 +91,21 @@ class PlanData(BaseModel):
     projected_corpus: float = Field(ge=0)
 
 
+class ExplainPlanStep(BaseModel):
+    key: str
+    label: str
+    value: str
+    formula: str | None = None
+    evidence: dict[str, float | int | str] = Field(default_factory=dict)
+
+
+class ExplainPlan(BaseModel):
+    generated_at: datetime
+    assumptions: list[str] = Field(default_factory=list)
+    steps: list[ExplainPlanStep] = Field(default_factory=list)
+    checks: list[str] = Field(default_factory=list)
+
+
 class GoalPlanData(BaseModel):
     name: str
     target_amount: float = Field(ge=0)
@@ -137,6 +152,7 @@ class PlanResponse(BaseModel):
     score: MoneyHealthScore
     priority_actions: list[str]
     explanation: str
+    explain_plan: Optional[ExplainPlan] = None
     coach_insight: Optional["CoachInsight"] = None
     future_simulation: Optional["FutureSimulation"] = None
     behavioral_flags: list[str] = Field(default_factory=list)
@@ -232,4 +248,76 @@ class SavedPlanResponse(BaseModel):
     created_at: datetime
     plan_input: PlanRequest
     plan_output: PlanResponse
+
+
+class GoalStatus(str, Enum):
+    active = "active"
+    paused = "paused"
+    completed = "completed"
+    archived = "archived"
+
+
+class GoalCreateRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+    target_amount: float = Field(gt=0)
+    horizon_years: int = Field(ge=1, le=50)
+    priority: int = Field(ge=1, le=5)
+    current_progress_amount: float = Field(default=0, ge=0)
+    monthly_contribution: float = Field(default=0, ge=0)
+    depends_on_goal_ids: list[int] = Field(default_factory=list)
+    linked_to_goal_ids: list[int] = Field(default_factory=list)
+    status: GoalStatus = GoalStatus.active
+
+    @field_validator("depends_on_goal_ids", "linked_to_goal_ids")
+    @classmethod
+    def validate_goal_id_lists(cls, value: list[int]) -> list[int]:
+        unique = list(dict.fromkeys(value))
+        if any(goal_id <= 0 for goal_id in unique):
+            raise ValueError("Goal IDs must be positive integers")
+        return unique
+
+
+class GoalUpdateRequest(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=2, max_length=80)
+    target_amount: Optional[float] = Field(default=None, gt=0)
+    horizon_years: Optional[int] = Field(default=None, ge=1, le=50)
+    priority: Optional[int] = Field(default=None, ge=1, le=5)
+    current_progress_amount: Optional[float] = Field(default=None, ge=0)
+    monthly_contribution: Optional[float] = Field(default=None, ge=0)
+    depends_on_goal_ids: Optional[list[int]] = None
+    linked_to_goal_ids: Optional[list[int]] = None
+    status: Optional[GoalStatus] = None
+
+    @field_validator("depends_on_goal_ids", "linked_to_goal_ids")
+    @classmethod
+    def validate_optional_goal_id_lists(cls, value: Optional[list[int]]) -> Optional[list[int]]:
+        if value is None:
+            return value
+        unique = list(dict.fromkeys(value))
+        if any(goal_id <= 0 for goal_id in unique):
+            raise ValueError("Goal IDs must be positive integers")
+        return unique
+
+    @model_validator(mode="after")
+    def validate_non_empty_payload(self) -> "GoalUpdateRequest":
+        if not any(value is not None for value in self.model_dump().values()):
+            raise ValueError("At least one field must be provided")
+        return self
+
+
+class GoalResponse(BaseModel):
+    id: int
+    name: str
+    target_amount: float
+    horizon_years: int
+    priority: int
+    current_progress_amount: float
+    monthly_contribution: float
+    depends_on_goal_ids: list[int] = Field(default_factory=list)
+    linked_to_goal_ids: list[int] = Field(default_factory=list)
+    blocked_by_goal_ids: list[int] = Field(default_factory=list)
+    status: GoalStatus
+    created_at: datetime
+    updated_at: datetime
+    progress_percent: float = Field(ge=0, le=100)
 

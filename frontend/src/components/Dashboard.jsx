@@ -15,7 +15,7 @@ export default function Dashboard({ data, whatIf, baselineHorizonYears }) {
   if (!data) {
     return (
       <div className="workspace-side-panel flex min-h-64 items-center justify-center text-white/75">
-        Submit your details to generate your plan.
+        Share your profile to generate your Finova strategy.
       </div>
     );
   }
@@ -93,7 +93,7 @@ export default function Dashboard({ data, whatIf, baselineHorizonYears }) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="workspace-side-panel workspace-side-panel-rail panel-accent panel-accent-amber">
-          <h3 className="text-lg font-bold text-white">Priority Financial Actions</h3>
+          <h3 className="text-lg font-bold text-white">Finova Priority Actions</h3>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-white/85">
             {actions.map((action) => (
               <li key={action}>{action}</li>
@@ -103,13 +103,13 @@ export default function Dashboard({ data, whatIf, baselineHorizonYears }) {
 
         <div className="workspace-side-panel workspace-side-panel-rail panel-accent panel-accent-ice">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-lg font-bold text-white">AI Explanation</h3>
+            <h3 className="text-lg font-bold text-white">Finova Rationale</h3>
             <button
               type="button"
               onClick={() => setSimpleMode((prev) => !prev)}
               className="workspace-btn-secondary rounded-full px-3 py-1 text-xs"
             >
-              {simpleMode ? "Normal Mode" : "Explain Like I'm 18"}
+              {simpleMode ? "Detailed View" : "Simplified View"}
             </button>
           </div>
           <p className="mt-3 text-sm leading-6 text-white/85">{simpleMode ? simpleExplanation : explanation}</p>
@@ -122,11 +122,11 @@ export default function Dashboard({ data, whatIf, baselineHorizonYears }) {
 export function SavePlanCard({ data, onSavePlan, canSave, saveStatus }) {
   return (
     <div className="workspace-side-panel workspace-side-panel-rail panel-accent panel-accent-ice h-full">
-      <h3 className="text-lg font-bold text-white">Plan Persistence</h3>
-      <p className="mt-1 text-sm text-white/75">Save this deterministic output to your account.</p>
+      <h3 className="text-lg font-bold text-white">Finova Vault Sync</h3>
+      <p className="mt-1 text-sm text-white/75">Save this verified strategy into your Finova Vault.</p>
       {!data ? (
         <p className="mt-3 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/80">
-          Generate a plan in Personal Plan Studio, then return here to save it.
+          Build a plan in Finova Plan Studio, then return here to save it.
         </p>
       ) : null}
       <button
@@ -135,7 +135,7 @@ export function SavePlanCard({ data, onSavePlan, canSave, saveStatus }) {
         disabled={!canSave}
         className="workspace-btn-primary mt-4 px-4 py-2 text-sm"
       >
-        Save Current Plan
+        Save to Finova Vault
       </button>
       <p className="mt-2 text-xs text-white/65">{saveStatus}</p>
     </div>
@@ -166,10 +166,10 @@ function CoachHero({ insight }) {
   return (
     <section className={`workspace-side-panel workspace-side-panel-hero panel-accent panel-accent-mint matte-sheen rounded-3xl p-6 transform transition-all duration-500 ${coachHeroToneClass(insight.severity)}`}>
       <p className="text-sm font-semibold text-white/90">
-        This system continuously analyzes your financial behavior and guides you toward better decisions.
+        Finova continuously analyzes your financial behavior and guides you toward stronger decisions.
       </p>
       <div className="mt-3">
-        <p className="text-xs font-bold uppercase tracking-widest text-white/70">AI Coach Insights</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-white/70">Finova Coach Insights</p>
         <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-white/65">Based on your income, expenses, and goals</p>
         <h2 className="mt-2 text-2xl font-black leading-tight text-white">{insight.headline}</h2>
         <p className="mt-3 text-sm leading-6 text-white/85">{insight.consequence}</p>
@@ -279,14 +279,14 @@ function ComparisonStrip({ baseline, scenario, healthImpact, llmSummary }) {
     ? corpusDelta >= 0
       ? `You can gain ${signedCurrency(corpusDelta)} with this change.`
       : `You are losing ${signedCurrency(corpusDelta)} with this change.`
-    : "Change your SIP or timeline to see your future transform.";
+    : "Adjust SIP or horizon to preview your Finova trajectory.";
   const headlineTone = scenario ? (corpusDelta >= 0 ? "border-emerald-900/25 bg-emerald-100/70 text-emerald-950" : "border-rose-900/25 bg-rose-100/70 text-rose-950") : "border-ink/10 bg-slate-100 text-ink";
 
   return (
     <div className="workspace-side-panel workspace-side-panel-hero workspace-tone-slate panel-accent panel-accent-cyan">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-lg font-bold text-white">See How Small Changes Impact Your Future</h3>
-        <p className="text-xs text-white/65">Compare baseline to what-if scenarios.</p>
+        <h3 className="text-lg font-bold text-white">See How Small Changes Shape Your Finova Future</h3>
+        <p className="text-xs text-white/65">Compare baseline and Finova what-if scenarios.</p>
       </div>
 
       <p className={`mt-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-all duration-700 ${headlineTone}`}>{headline}</p>
@@ -300,7 +300,7 @@ function ComparisonStrip({ baseline, scenario, healthImpact, llmSummary }) {
             <p className="text-xs font-bold uppercase tracking-wider text-white/65">{row.label}</p>
             <p className="mt-2 text-sm text-white/75">Baseline: <span className="font-semibold text-white">{row.baseline}</span></p>
             <p className="mt-1 text-sm text-white/75">What-if: <span className="font-semibold text-white">{row.scenario}</span></p>
-            <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold font-bold transition-all ${impactBadgeClass(row.tone)} ${row.scenario !== "-" ? "ring-2" : ""}`} style={{
+            <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-bold transition-all ${impactBadgeClass(row.tone)} ${row.scenario !== "-" ? "ring-2" : ""}`} style={{
               ringColor: row.tone === "positive" ? "rgba(34, 197, 94, 0.5)" : row.tone === "negative" ? "rgba(239, 68, 68, 0.5)" : "transparent"
             }}>
               Impact: {row.impact}
@@ -319,7 +319,7 @@ function FutureStoryCard({ futureSimulation }) {
 
   return (
     <div className="workspace-side-panel workspace-side-panel-rail workspace-tone-olive panel-accent panel-accent-mint">
-      <h3 className="text-lg font-bold text-white">Your Future</h3>
+      <h3 className="text-lg font-bold text-white">Finova Future Outlook</h3>
       <p className="mt-2 text-sm leading-6 text-white/85">{futureSimulation.narrative}</p>
       <div className="mt-3 grid gap-3 md:grid-cols-3">
         <FutureMetric label="Projection Year" value={`${futureSimulation.projection_year}`} />
@@ -418,7 +418,7 @@ function ObservationsCard({ observations }) {
   
   return (
     <div className="workspace-side-panel workspace-side-panel-rail workspace-tone-bronze panel-accent panel-accent-amber">
-      <h3 className="text-lg font-bold text-white">AI Observations</h3>
+      <h3 className="text-lg font-bold text-white">Finova Observations</h3>
       <ul className="mt-3 space-y-2 text-sm text-white/85">
         {observations.map((item, idx) => (
           <li key={item} className="rounded-xl border border-white/15 bg-white/10 px-3 py-2" style={{
@@ -435,9 +435,9 @@ function ObservationsCard({ observations }) {
 function NudgesCard({ nudges }) {
   return (
     <div className="workspace-side-panel workspace-side-panel-rail workspace-tone-olive panel-accent panel-accent-mint">
-      <h3 className="text-lg font-bold text-white">Micro-Nudges</h3>
+      <h3 className="text-lg font-bold text-white">Finova Nudges</h3>
       <div className="mt-3 space-y-2">
-        {(nudges.length ? nudges : [{ title: "No nudges yet", message: "Run a plan to activate coaching prompts.", severity: "info" }]).map((nudge) => (
+        {(nudges.length ? nudges : [{ title: "No nudges yet", message: "Run a Finova plan to activate coaching prompts.", severity: "info" }]).map((nudge) => (
           <div key={`${nudge.title}-${nudge.message}`} className={`rounded-xl border px-3 py-2 text-sm ${nudgeClass(nudge.severity)}`}>
             <p className="font-semibold">{nudge.title}</p>
             <p className="mt-1">{nudge.message}</p>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 export default function AuthPanel({ onSignup, onLogin, token, loading, authError }) {
-  const [email, setEmail] = useState("demo@aimoneymentor.app");
+  const [email, setEmail] = useState("demo@finova.app");
   const [password, setPassword] = useState("DemoPass123");
 
   async function handleSignup(event) {
@@ -16,8 +16,8 @@ export default function AuthPanel({ onSignup, onLogin, token, loading, authError
 
   return (
     <div className="workspace-side-panel h-full">
-      <h3 className="text-lg font-bold text-white">Account</h3>
-      <p className="mt-1 text-sm text-white/75">Login to save and retrieve your generated plans.</p>
+      <h3 className="text-lg font-bold text-white">Finova Access</h3>
+      <p className="mt-1 text-sm text-white/75">Sign in to protect and sync your plans in Finova Vault.</p>
 
       <form className="mt-4 space-y-3" onSubmit={handleLogin}>
         <label className="block text-sm font-semibold text-white/90">
@@ -48,7 +48,7 @@ export default function AuthPanel({ onSignup, onLogin, token, loading, authError
             disabled={loading}
             className="workspace-btn-primary px-4 py-2 text-sm"
           >
-            Login
+            Sign In
           </button>
           <button
             type="button"
@@ -56,12 +56,12 @@ export default function AuthPanel({ onSignup, onLogin, token, loading, authError
             onClick={handleSignup}
             className="workspace-btn-secondary px-4 py-2 text-sm"
           >
-            Sign Up
+            Create Account
           </button>
         </div>
       </form>
 
-      <p className="mt-3 text-xs text-white/65">{token ? "Authenticated" : "Not authenticated"}</p>
+      <p className="mt-3 text-xs text-white/65">{token ? "Connected to Finova Vault" : "Sign in to connect Finova Vault"}</p>
       {authError ? <p className="mt-2 text-sm text-rose-300">{authError}</p> : null}
     </div>
   );

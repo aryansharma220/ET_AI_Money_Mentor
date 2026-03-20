@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import AuthPanel from "./components/AuthPanel";
 import Dashboard, { SavePlanCard } from "./components/Dashboard";
+import ExplainPlanDetail from "./components/ExplainPlanDetail";
+import GoalManagerPanel from "./components/GoalManagerPanel";
 import LandingPage from "./components/LandingPage";
 import MultiGoalPlanner from "./components/MultiGoalPlanner";
 import OnboardingForm from "./components/OnboardingForm";
@@ -20,18 +22,19 @@ import {
 export default function App() {
   const [activeView, setActiveView] = useState("landing");
   const [activePage, setActivePage] = useState("personal");
+  const themePreset = "forest-luxe";
 
   const [planResponse, setPlanResponse] = useState(null);
   const [lastPlanInput, setLastPlanInput] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [token, setToken] = useState(localStorage.getItem("aimm_token") || "");
+  const [token, setToken] = useState(localStorage.getItem("finova_token") || localStorage.getItem("aimm_token") || "");
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [savedPlans, setSavedPlans] = useState([]);
   const [savedPlansLoading, setSavedPlansLoading] = useState(false);
-  const [saveStatus, setSaveStatus] = useState("Login to enable plan persistence.");
+  const [saveStatus, setSaveStatus] = useState("Sign in to enable Finova Vault sync.");
 
   const [whatIfResponse, setWhatIfResponse] = useState(null);
   const [whatIfLoading, setWhatIfLoading] = useState(false);
@@ -46,6 +49,7 @@ export default function App() {
   const [multiGoalError, setMultiGoalError] = useState("");
 
   const [showExplainPlan, setShowExplainPlan] = useState(false);
+  const [showExplainDetail, setShowExplainDetail] = useState(false);
 
   const workspaceThemeClass = useMemo(() => {
     if (activePage === "optimizer") {
@@ -77,7 +81,7 @@ export default function App() {
 
   async function handleWhatIf(modification) {
     if (!lastPlanInput) {
-      setWhatIfError("Generate a base plan first.");
+      setWhatIfError("Build a base Finova plan first.");
       return;
     }
 
@@ -90,7 +94,7 @@ export default function App() {
       });
       setWhatIfResponse(response);
     } catch (err) {
-      setWhatIfError(err.message || "Unable to run what-if scenario.");
+      setWhatIfError(err.message || "Unable to run Finova scenario.");
     } finally {
       setWhatIfLoading(false);
     }
@@ -98,7 +102,7 @@ export default function App() {
 
   async function handleIncomeDropStressTest() {
     if (!lastPlanInput) {
-      setStressError("Generate a base plan first.");
+      setStressError("Build a base Finova plan first.");
       return;
     }
 
@@ -142,7 +146,7 @@ export default function App() {
     try {
       const response = await signup(credentials);
       setToken(response.access_token);
-      localStorage.setItem("aimm_token", response.access_token);
+      localStorage.setItem("finova_token", response.access_token);
       setSaveStatus("Signed up and authenticated.");
     } catch (err) {
       setAuthError(err.message || "Signup failed.");
@@ -157,7 +161,7 @@ export default function App() {
     try {
       const response = await login(credentials);
       setToken(response.access_token);
-      localStorage.setItem("aimm_token", response.access_token);
+      localStorage.setItem("finova_token", response.access_token);
       setSaveStatus("Logged in successfully.");
     } catch (err) {
       setAuthError(err.message || "Login failed.");
@@ -185,7 +189,7 @@ export default function App() {
 
   async function handleSavePlan() {
     if (!token || !planResponse || !lastPlanInput) {
-      setSaveStatus("Generate a plan and login first.");
+      setSaveStatus("Build a plan and sign in first.");
       return;
     }
 
@@ -227,6 +231,40 @@ export default function App() {
     }).format(value || 0);
   }
 
+  function formatReadableFormula(formula) {
+    if (!formula) return "";
+
+    const variableLabels = {
+      equity_return: "equity return",
+      debt_return: "debt return",
+      liquid_return: "liquid return",
+      target_amount: "target amount",
+      monthly_sip: "monthly SIP",
+      monthly_income: "monthly income",
+      monthly_expenses: "monthly expenses",
+      risk_appetite: "risk appetite",
+      savings: "savings score",
+      debt: "debt score",
+      emergency: "emergency score",
+      diversification: "diversification score",
+      years: "years",
+      r: "annual return",
+    };
+
+    let output = formula;
+    Object.entries(variableLabels).forEach(([key, label]) => {
+      output = output.replace(new RegExp(`\\b${key}\\b`, "g"), label);
+    });
+
+    return output
+      .replace(/\*/g, " x ")
+      .replace(/\//g, " / ")
+      .replace(/\^/g, " ^ ")
+      .replace(/\+/g, " + ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   const explainPlan = useMemo(() => {
     if (activePage === "personal") {
       if (!planResponse?.plan || !lastPlanInput) {
@@ -234,9 +272,24 @@ export default function App() {
           title: "Personal Plan Explanation",
           points: [
             "No personal plan is available yet.",
-            "Submit your financial snapshot to generate a baseline recommendation.",
-            "After that, this section will explain how SIP, allocation, score, and scenario deltas were derived.",
+            "Submit your financial snapshot to generate your Finova baseline recommendation.",
+            "After that, this section explains how SIP, allocation, score, and scenario deltas are derived.",
           ],
+        };
+      }
+
+      if (planResponse?.explain_plan?.steps?.length) {
+        const backendPoints = [
+          ...planResponse.explain_plan.steps.map(
+            (step) =>
+              `${step.label}: ${step.value}${step.formula ? ` (Formula: ${formatReadableFormula(step.formula)})` : ""}`,
+          ),
+          ...(planResponse.explain_plan.checks || []),
+        ];
+
+        return {
+          title: "Personal Plan Explanation (Auditable)",
+          points: backendPoints,
         };
       }
 
@@ -256,7 +309,7 @@ export default function App() {
           `Latest what-if run changed projected corpus by ${formatInr(whatIfResponse.delta.projected_corpus_delta)} and timeline by ${whatIfResponse.delta.horizon_delta_years} years versus baseline.`,
         );
       } else {
-        points.push("No what-if scenario is currently applied; comparisons are against the baseline plan only.");
+        points.push("No Finova what-if scenario is currently applied; comparisons are against baseline only.");
       }
 
       return {
@@ -296,9 +349,9 @@ export default function App() {
     }
 
     return {
-      title: "Account Vault Explanation",
+      title: "Finova Vault Explanation",
       points: [
-        token ? "You are authenticated; save and retrieval actions are enabled." : "You are not authenticated; save/retrieval is disabled until login.",
+        token ? "You are connected; Finova Vault save and retrieval are enabled." : "You are not connected; Finova Vault save and retrieval are disabled until sign in.",
         `${savedPlans.length} saved plan snapshot(s) are currently available in your account view.`,
         "Saved Plans tabs are sorted views of the same dataset: Recent, Best Score, and Highest Corpus.",
       ],
@@ -323,7 +376,7 @@ export default function App() {
 
   if (activeView === "landing") {
     return (
-      <main className="landing-screen">
+      <main className={`landing-screen theme-${themePreset}`}>
         <LandingPage
           onStartPersonal={openPersonalPage}
           onStartOptimizer={openOptimizerPage}
@@ -334,7 +387,7 @@ export default function App() {
   }
 
   return (
-    <main className={workspaceThemeClass}>
+    <main className={`${workspaceThemeClass} theme-${themePreset}`}>
       <div className="workspace-orb workspace-orb-one" />
       <div className="workspace-orb workspace-orb-two" />
 
@@ -343,11 +396,14 @@ export default function App() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="inline-block rounded-full border border-white/30 bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white/80">
-                Decision Engine Workspace
+                Finova Command Center
               </p>
-              <h1 className="mt-3 text-4xl font-black tracking-tight text-white">AI Money Mentor</h1>
+              <div className="mt-3 flex items-center gap-3">
+                <span className="brand-monogram">F</span>
+                <h1 className="brand-heading text-4xl font-black tracking-tight text-white">Finova</h1>
+              </div>
               <p className="mt-2 max-w-2xl text-sm text-white/80">
-                Deterministic finance planning with AI-powered intelligence, scenario modeling, and constrained goal optimization.
+                Deterministic financial planning with intelligent guidance, scenario modeling, and constrained goal optimization.
               </p>
             </div>
             <button
@@ -355,7 +411,7 @@ export default function App() {
               onClick={() => setActiveView("landing")}
               className="rounded-full border border-white/35 bg-white/15 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white backdrop-blur-sm transition hover:bg-white/25"
             >
-              Back to Landing
+              Back to Finova Home
             </button>
           </div>
 
@@ -367,7 +423,7 @@ export default function App() {
                 activePage === "personal" ? "bg-white text-slate-900" : "text-white/85 hover:bg-white/20"
               }`}
             >
-              Personal Plan Studio
+              Finova Plan Studio
             </button>
             <button
               type="button"
@@ -376,7 +432,7 @@ export default function App() {
                 activePage === "optimizer" ? "bg-white text-slate-900" : "text-white/85 hover:bg-white/20"
               }`}
             >
-              Advanced Goal Optimizer
+              Finova Goal Optimizer
             </button>
             <button
               type="button"
@@ -385,7 +441,7 @@ export default function App() {
                 activePage === "vault" ? "bg-white text-slate-900" : "text-white/85 hover:bg-white/20"
               }`}
             >
-              Account Vault
+              Finova Vault
             </button>
           </nav>
 
@@ -395,13 +451,24 @@ export default function App() {
               onClick={() => setShowExplainPlan((prev) => !prev)}
               className="rounded-xl border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/25"
             >
-              {showExplainPlan ? "Hide Explain Plan" : "Explain Plan"}
+              {showExplainPlan ? "Hide Finova Rationale" : "Finova Rationale"}
             </button>
           </div>
 
           {showExplainPlan ? (
             <div className="mt-3 rounded-xl border border-white/25 bg-white/10 p-3 backdrop-blur-sm">
-              <p className="text-sm font-semibold text-white">{explainPlan.title}</p>
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <p className="text-sm font-semibold text-white">{explainPlan.title}</p>
+                {activePage === "personal" && planResponse?.explain_plan?.steps?.length ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowExplainDetail(true)}
+                    className="rounded-full border border-white/40 bg-white/20 px-3 py-1 text-xs font-bold text-white transition hover:bg-white/30"
+                  >
+                    View Details
+                  </button>
+                ) : null}
+              </div>
               <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-6 text-white/85">
                 {explainPlan.points.map((point) => (
                   <li key={point}>{point}</li>
@@ -411,11 +478,18 @@ export default function App() {
           ) : null}
         </header>
 
+        {showExplainDetail && activePage === "personal" ? (
+          <ExplainPlanDetail
+            explainPlan={planResponse?.explain_plan}
+            onClose={() => setShowExplainDetail(false)}
+          />
+        ) : null}
+
         {activePage === "personal" ? (
           <>
             <section className="workspace-section workspace-reveal-section mb-3 rounded-xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur-sm" style={{ animationDelay: "120ms" }}>
               <p className="section-kicker">Planning Zone</p>
-              <h2 className="text-xl font-black text-white">Personal Financial Plan</h2>
+              <h2 className="text-xl font-black text-white">Finova Personal Plan</h2>
               <p className="mt-1 text-sm text-white/80">
                 Behavioral insight, simulation, and stress-tested planning for an individual profile.
               </p>
@@ -456,7 +530,7 @@ export default function App() {
           <>
             <section className="workspace-section workspace-reveal-section mb-3 rounded-xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur-sm" style={{ animationDelay: "120ms" }}>
               <p className="section-kicker">Optimization Zone</p>
-              <h2 className="text-xl font-black text-white">Advanced Multi-Goal Optimizer</h2>
+              <h2 className="text-xl font-black text-white">Finova Multi-Goal Optimizer</h2>
               <p className="mt-1 text-sm text-white/80">
                 Constraint-based allocation and dependency-aware planning across competing goals.
               </p>
@@ -475,7 +549,7 @@ export default function App() {
           <>
             <section className="workspace-section workspace-reveal-section mb-3 rounded-xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur-sm" style={{ animationDelay: "120ms" }}>
               <p className="section-kicker">System Zone</p>
-              <h2 className="text-xl font-black text-white">Account Vault</h2>
+              <h2 className="text-xl font-black text-white">Finova Vault</h2>
               <p className="mt-1 text-sm text-white/80">
                 Authentication, plan persistence, and searchable saved snapshots in one place.
               </p>
@@ -496,6 +570,10 @@ export default function App() {
                 saveStatus={saveStatus}
               />
               <SavedPlansPanel plans={savedPlans} loading={savedPlansLoading} authenticated={Boolean(token)} />
+            </section>
+
+            <section className="workspace-zone-system workspace-reveal-section mb-6" style={{ animationDelay: "240ms" }}>
+              <GoalManagerPanel token={token} />
             </section>
           </>
         )}
@@ -520,7 +598,7 @@ export default function App() {
 function CoachThinkingCard() {
   return (
     <div className="glass-card flex min-h-64 flex-col justify-center rounded-3xl border border-stone-400/45 bg-stone-100/80 p-6">
-      <p className="text-xs font-bold uppercase tracking-widest text-ink/70">AI Coach Is Thinking</p>
+      <p className="text-xs font-bold uppercase tracking-widest text-ink/70">Finova Coach Is Thinking</p>
       <h2 className="mt-2 text-2xl font-black text-ink">Analyzing behavior patterns and financial risks...</h2>
       <p className="mt-3 text-sm text-ink/80">
         Generating deterministic plan, checking nudges, and preparing personalized coaching.

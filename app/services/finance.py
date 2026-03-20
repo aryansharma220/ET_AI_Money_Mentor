@@ -6,11 +6,14 @@ external services and are safe to unit test.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Iterable
 
 from app.core.config import settings
 from app.models import (
     Allocation,
+    ExplainPlan,
+    ExplainPlanStep,
     GoalGraphEdge,
     GoalGraphMetadata,
     GoalPlanData,
@@ -223,6 +226,112 @@ def build_plan(plan_input: PlanRequest) -> tuple[PlanData, MoneyHealthScore, lis
         ),
         score,
         actions,
+    )
+
+
+def build_explain_plan(plan_input: PlanRequest, plan_data: PlanData, score: MoneyHealthScore) -> ExplainPlan:
+    """Build auditable deterministic explanation steps for UI and API consumers."""
+
+    investable_surplus = _round2(max(0.0, plan_input.monthly_income - plan_input.monthly_expenses))
+    sip_share_percent = 0.0
+    if investable_surplus > 0:
+        sip_share_percent = _round2((plan_data.monthly_sip / investable_surplus) * 100)
+
+    emergency_months = 0.0
+    if plan_input.monthly_expenses > 0:
+        emergency_months = _round2(plan_input.current_savings / plan_input.monthly_expenses)
+
+    return ExplainPlan(
+        generated_at=datetime.now(timezone.utc),
+        assumptions=[
+            f"Equity return assumption: {int(settings.equity_return_annual * 100)}% annual",
+            f"Debt return assumption: {int(settings.debt_return_annual * 100)}% annual",
+            f"Liquid return assumption: {int(settings.liquid_return_annual * 100)}% annual",
+            "All calculations are deterministic and use monthly compounding.",
+        ],
+        steps=[
+            ExplainPlanStep(
+                key="allocation",
+                label="Risk to allocation mapping",
+                value=(
+                    f"Equity {plan_data.allocation.equity}% | "
+                    f"Debt {plan_data.allocation.debt}% | "
+                    f"Liquid {plan_data.allocation.liquid}%"
+                ),
+                formula="Static mapping by risk_appetite",
+                evidence={"risk_appetite": plan_input.risk_appetite.value},
+            ),
+            ExplainPlanStep(
+                key="expected_return",
+                label="Weighted expected annual return",
+                value=f"{_round2(plan_data.expected_return_annual * 100)}%",
+                formula="equity%*equity_return + debt%*debt_return + liquid%*liquid_return",
+                evidence={
+                    "equity_percent": plan_data.allocation.equity,
+                    "debt_percent": plan_data.allocation.debt,
+                    "liquid_percent": plan_data.allocation.liquid,
+                    "weighted_return_decimal": plan_data.expected_return_annual,
+                },
+            ),
+            ExplainPlanStep(
+                key="required_sip",
+                label="Required SIP for target",
+                value=f"INR {_round2(plan_data.monthly_sip):,.2f}",
+                formula="target_amount / (((1 + r/12)^(years*12) - 1) / (r/12))",
+                evidence={
+                    "target_amount": _round2(plan_input.target_amount),
+                    "horizon_years": plan_input.investment_horizon_years,
+                    "monthly_sip": _round2(plan_data.monthly_sip),
+                },
+            ),
+            ExplainPlanStep(
+                key="projection",
+                label="Projected corpus at horizon",
+                value=f"INR {_round2(plan_data.projected_corpus):,.2f}",
+                formula="monthly_sip * (((1 + r/12)^(years*12) - 1) / (r/12))",
+                evidence={
+                    "horizon_years": plan_input.investment_horizon_years,
+                    "projected_corpus": _round2(plan_data.projected_corpus),
+                },
+            ),
+            ExplainPlanStep(
+                key="cashflow_fit",
+                label="Cashflow fit check",
+                value=f"SIP uses {sip_share_percent}% of monthly surplus",
+                formula="monthly_sip / max(monthly_income - monthly_expenses, 0)",
+                evidence={
+                    "monthly_income": _round2(plan_input.monthly_income),
+                    "monthly_expenses": _round2(plan_input.monthly_expenses),
+                    "surplus": investable_surplus,
+                    "sip_share_percent": sip_share_percent,
+                },
+            ),
+            ExplainPlanStep(
+                key="health_score",
+                label="Money health score",
+                value=f"{score.overall}/100",
+                formula="0.35*savings + 0.25*debt + 0.25*emergency + 0.15*diversification",
+                evidence={
+                    "savings_score": score.components.savings_ratio,
+                    "debt_score": score.components.debt_ratio,
+                    "emergency_score": score.components.emergency_fund,
+                    "diversification_score": score.components.diversification,
+                    "emergency_months": emergency_months,
+                },
+            ),
+        ],
+        checks=[
+            (
+                "Projection check passed: final projection equals projected corpus."
+                if plan_data.projection and _round2(plan_data.projection[-1].projected_value) == _round2(plan_data.projected_corpus)
+                else "Projection check warning: final projection mismatch detected."
+            ),
+            (
+                "SIP feasibility warning: required SIP exceeds current monthly surplus."
+                if plan_data.monthly_sip > investable_surplus
+                else "SIP feasibility check passed: required SIP is within monthly surplus."
+            ),
+        ],
     )
 
 

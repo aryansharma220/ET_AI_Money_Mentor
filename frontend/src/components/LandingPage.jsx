@@ -6,34 +6,36 @@ export default function LandingPage({ onStartPersonal, onStartOptimizer, onViewD
       <div className="landing-orb landing-orb-three" />
 
       <header className="landing-reveal mx-auto flex w-full max-w-6xl items-center justify-between rounded-full border border-white/25 bg-white/15 px-5 py-3 backdrop-blur-md">
-        <p className="text-sm font-bold tracking-wide text-white">Financial Journey</p>
+        <div className="brand-wordmark">
+          <span className="brand-monogram">F</span>
+          <p className="text-sm font-bold tracking-wide text-white">Finova</p>
+        </div>
         <div className="hidden items-center gap-6 text-xs font-semibold text-white/85 md:flex">
           <p>Personal Studio</p>
           <p>Goal Optimizer</p>
           <p>Risk Insights</p>
           <p>Secure Data</p>
         </div>
-        <button
-          type="button"
-          onClick={onStartPersonal}
-          className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-slate-900 transition hover:bg-white/90"
-        >
-          Launch
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onStartPersonal}
+            className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-slate-900 transition hover:bg-white/90"
+          >
+            Open Finova
+          </button>
+        </div>
       </header>
 
       <section className="landing-reveal mx-auto mt-12 max-w-4xl text-center text-white" style={{ animationDelay: "120ms" }}>
-        <p className="inline-block rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
-          Intelligent Wealth System
-        </p>
         <h1 className="landing-hero-title mt-6 text-5xl font-black leading-tight md:text-7xl">
-          Plan With Clarity.
+          Build Wealth With Clarity.
           <br />
-          Decide With Confidence.
+          Execute With Confidence.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/85 md:text-base">
-          A deterministic financial engine paired with behavioral intelligence, what-if simulation, and
-          dependency-aware multi-goal optimization.
+          Finova combines deterministic planning, behavioral insight, and scenario intelligence
+          to help you make confident money decisions.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button
@@ -41,21 +43,21 @@ export default function LandingPage({ onStartPersonal, onStartOptimizer, onViewD
             onClick={onStartPersonal}
             className="rounded-full bg-white px-6 py-3 text-sm font-bold text-slate-900 shadow-xl transition hover:-translate-y-0.5"
           >
-            Enter Personal Plan Studio
+            Enter Finova Plan Studio
           </button>
           <button
             type="button"
             onClick={onStartOptimizer}
             className="rounded-full border border-white/40 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
           >
-            Open Advanced Goal Optimizer
+            Open Finova Goal Optimizer
           </button>
           <button
             type="button"
             onClick={onViewDemo}
             className="rounded-full border border-white/30 px-6 py-3 text-sm font-bold text-white/90 transition hover:bg-white/10"
           >
-            View Guided Demo
+            View Finova Demo
           </button>
         </div>
       </section>
@@ -88,12 +90,12 @@ export default function LandingPage({ onStartPersonal, onStartOptimizer, onViewD
         <MetricTile label="Decision Engine" value="Deterministic" />
         <MetricTile label="Behavior Layer" value="Adaptive" />
         <MetricTile label="Scenario Analysis" value="Real-Time" />
-        <MetricTile label="Security Standard" value="Bank-Grade" />
+        <MetricTile label="Security Standard" value="Institutional" />
       </section>
 
       <footer className="landing-reveal mx-auto mt-16 flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 border-t border-white/20 pt-6 text-xs text-white/70" style={{ animationDelay: "360ms" }}>
-        <p>AI Money Mentor</p>
-        <p>A financial decision engine for modern planning journeys.</p>
+        <p>Finova</p>
+        <p>Premium financial planning system for modern wealth journeys.</p>
       </footer>
     </div>
   );
