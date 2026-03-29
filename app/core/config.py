@@ -1,5 +1,7 @@
 """Application configuration and finance assumptions."""
 
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,7 +26,8 @@ class Settings(BaseSettings):
     openrouter_site_name: str = "AI Money Mentor"
 
     # Auth and persistence
-    database_url: str = "sqlite:///./ai_money_mentor.db"
+    # Vercel serverless functions have ephemeral filesystems; default to /tmp there.
+    database_url: str = "sqlite:////tmp/ai_money_mentor.db" if os.getenv("VERCEL") else "sqlite:///./ai_money_mentor.db"
     jwt_secret_key: str = "change-this-secret-in-production"
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 1440

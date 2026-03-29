@@ -102,6 +102,44 @@ INFLATION_ANNUAL=0.05
 python -m pytest -q
 ```
 
+## Deploy On Vercel
+
+This repository is configured to deploy as a single Vercel project:
+
+- Frontend: Vite static build from `frontend/`
+- Backend: FastAPI serverless function at `api/index.py`
+
+### One-time setup in Vercel
+
+1. Import this repo in Vercel.
+1. Keep project root at repository root (`ET_AI`).
+1. Vercel will use `vercel.json` automatically.
+
+### Environment variables to set in Vercel
+
+Set these variables in the Vercel project settings:
+
+- `JWT_SECRET_KEY` (required)
+- `JWT_ALGORITHM` (optional, defaults to `HS256`)
+- `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` (optional)
+- `OPENROUTER_API_KEY` (optional, for LLM explanations)
+- `OPENROUTER_MODEL` (optional)
+- `OPENROUTER_BASE_URL` (optional)
+- `OPENROUTER_SITE_URL` (recommended to your deployed domain)
+- `OPENROUTER_SITE_NAME` (optional)
+- `DATABASE_URL` (recommended: managed Postgres or other external DB)
+
+Notes:
+
+- If `DATABASE_URL` is not set on Vercel, the app falls back to SQLite at `/tmp/ai_money_mentor.db`.
+- `/tmp` is ephemeral in serverless, so data is not durable across cold starts/redeploys.
+- For persistent data, use an external database and set `DATABASE_URL`.
+
+### API URL behavior
+
+- In production, frontend calls same-origin `/api/v1/...`.
+- In local frontend dev (`npm run dev`), Vite proxies `/api` to `http://127.0.0.1:8000`.
+
 ## Current Endpoints
 
 - `GET /api/v1/health`
